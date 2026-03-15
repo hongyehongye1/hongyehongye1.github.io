@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🌟 小小任务探险家 - 专业版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --primary: #FF6B6B;
+            --secondary: #4ECDC4;
+            --accent: #FFE66D;
+            --dark: #2C3E50;
+            --light: #F7F9FC;
+            --success: #95E1D3;
+            --warning: #FFB347;
+            --danger: #ff6b6b;
+            --purple: #667eea;
+            --info: #74b9ff;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--dark);
+            overflow-x: hidden;
+            padding-bottom: 140px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+
+        /* 头部 */
+        .header {
+            text-align: center;
+            color: white;
+            padding: 15px 0 10px 0;
+        }
+
+        .header h1 {
+            font-size: 1.6em;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        /* 全局积分悬浮 */
+        .points-float {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(255,255,255,0.95);
+            padding: 8px 15px;
+            border-radius: 20px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            font-weight: bold;
+            color: var(--primary);
+            z-index: 997;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            border: 2px solid var(--accent);
+        }
+
+        /* 底部导航 */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+            z-index: 998;
+            border-top: 1px solid #eee;
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            background: none;
+            color: #999;
+            font-size: 0.75em;
+        }
+
+        .nav-item.active {
+            color: var(--purple);
+            transform: scale(1.05);
+        }
+
+        .nav-icon {
+            font-size: 1.8em;
+        }
+
+        /* 页面切换 */
+        .page {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 积分面板 */
+        .score-board {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 12px;
+            border-radius: 15px;
+            min-width: 80px;
+            flex: 1;
+        }
+
+        .stat-card.total { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+        .stat-card.today { background: linear-gradient(135deg, #f093fb, #f5576c); color: white; }
+        .stat-card.streak { background: linear-gradient(135deg, #4facfe, #00f2fe); color: white; }
+        .stat-card.quality { background: linear-gradient(135deg, #00b894, #00cec9); color: white; }
+
+        .stat-value { font-size: 1.6em; font-weight: bold; margin: 5px 0; }
+        .stat-label { font-size: 0.75em; opacity: 0.9; }
+
+        /* 卡片 */
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        .card-title {
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+        }
+
+        /* 表单 */
+        .add-task-form { display: flex; flex-direction: column; gap: 12px; }
+        .input-group { display: flex; flex-direction: column; gap: 4px; }
+        .input-group label { font-weight: 600; color: #555; font-size: 0.85em; }
+        .input-group input, .input-group select {
+            padding: 10px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1em; width: 100%;
+        }
+        .input-group input:focus, .input-group select:focus { outline: none; border-color: var(--secondary); }
+        
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), #ee5a5a);
+            color: white; border: none; padding: 12px; border-radius: 10px;
+            font-size: 1em; font-weight: 600; cursor: pointer; margin-top: 5px;
+        }
+
+        /* 任务列表 - 更新样式 */
+        .task-list { max-height: 400px; overflow-y: auto; padding-right: 5px; }
+        
+        .task-item {
+            background: var(--light);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+            position: relative;
+            border-left: 4px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .task-item.pending { border-left-color: var(--warning); }
+        .task-item.completed { border-left-color: var(--success); background: #f8f9fa; }
+        .task-item.overtime { border-left-color: var(--danger); }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .task-info { flex: 1; min-width: 0; }
+        .task-name { 
+            font-weight: 600; font-size: 0.95em; 
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+            display: flex; align-items: center; gap: 5px;
+        }
+        
+        .task-tags {
+            display: flex;
+            gap: 5px;
+            margin-top: 4px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            font-size: 0.7em;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: #e0e0e0;
+            color: #666;
+        }
+
+        .tag.time-limit { background: #e3f2fd; color: #1976d2; }
+        .tag.overtime { background: #ffebee; color: #c62828; }
+        .tag.quality-excellent { background: #e8f5e9; color: #2e7d32; }
+        .tag.quality-good { background: #e3f2fd; color: #1565c0; }
+        .tag.quality-pass { background: #fff3e0; color: #ef6c00; }
+        .tag.quality-fail { background: #ffebee; color: #c62828; }
+
+        .task-points-section {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .points-base {
+            font-size: 0.8em;
+            color: #999;
+            text-decoration: line-through;
+        }
+
+        .points-actual {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .points-actual.bonus { color: var(--success); }
+        .points-actual.penalty { color: var(--danger); }
+
+        .task-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .btn-icon {
+            width: 32px; height: 32px; border: none; border-radius: 50%;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 1em; transition: all 0.3s;
+        }
+        .btn-complete { background: var(--success); }
+        .btn-delete { background: var(--danger); color: white; }
+        .btn-review { background: var(--info); color: white; width: auto; padding: 0 12px; font-size: 0.85em; }
+
+        /* 评价弹窗 - 新增 */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            width: 100%;
+            max-width: 400px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+            color: var(--dark);
+        }
+
+        .review-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: var(--light);
+            border-radius: 12px;
+        }
+
+        .review-label {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .time-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+        }
+
+        .time-status {
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 0.85em;
+        }
+
+        .time-status.ontime { background: #d4edda; color: #155724; }
+        .time-status.late { background: #f8d7da; color: #721c24; }
+
+        .quality-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .quality-btn {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .quality-btn:hover { border-color: var(--secondary); }
+        .quality-btn.selected {
+            border-color: var(--primary);
+            background: #fff3f3;
+            transform: scale(1.05);
+        }
+
+        .quality-btn .emoji { font-size: 1.5em; display: block; margin-bottom: 4px; }
+        .quality-btn .label { font-size: 0.8em; font-weight: 600; }
+        .quality-btn .multiplier { font-size: 0.7em; color: #999; margin-top: 2px; }
+
+        .points-preview {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .points-preview .label { font-size: 0.9em; opacity: 0.9; margin-bottom: 5px; }
+        .points-preview .value { font-size: 2em; font-weight: bold; }
+        .points-preview .calculation { font-size: 0.8em; opacity: 0.8; margin-top: 5px; }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal-actions button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-cancel { background: #e0e0e0; color: #666; }
+        .btn-confirm { background: linear-gradient(135deg, var(--primary), #ee5a5a); color: white; }
+
+        /* 统计标签 */
+        .stats-summary {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .stat-tag {
+            background: rgba(255,255,255,0.9);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* 图表和历史 */
+        .chart-container { position: relative; height: 200px; margin-top: 15px; }
+        .history-list { max-height: 200px; overflow-y: auto; }
+        .history-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px; border-bottom: 1px solid #eee; font-size: 0.9em;
+        }
+        .history-points.positive { color: var(--success); }
+        .history-points.negative { color: var(--danger); }
+
+        /* 兑换商城 */
+        .rewards-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+        @media (max-width: 380px) { .rewards-grid { grid-template-columns: 1fr; } }
+        
+        .reward-card {
+            background: linear-gradient(135deg, #fff9e6, #ffffff);
+            border: 2px solid var(--accent);
+            border-radius: 16px;
+            padding: 15px;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .reward-card:active { transform: scale(0.95); }
+        .reward-card.disabled { opacity: 0.5; filter: grayscale(1); cursor: not-allowed; }
+        .reward-icon { font-size: 2.5em; margin-bottom: 8px; }
+        .reward-name { font-weight: 700; font-size: 1em; margin-bottom: 5px; }
+        .reward-desc { font-size: 0.8em; color: #666; margin-bottom: 10px; }
+        .reward-cost { background: var(--primary); color: white; padding: 5px 12px; border-radius: 15px; font-weight: bold; font-size: 0.9em; display: inline-block; }
+
+        .custom-reward {
+            background: white;
+            border: 2px dashed #ccc;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            margin-top: 10px;
+        }
+        .input-coins { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; justify-content: center; }
+        .input-coins input { width: 100px; padding: 10px; border: 2px solid var(--secondary); border-radius: 10px; text-align: center; font-size: 1.2em; font-weight: bold; }
+
+        /* 成就徽章 */
+        .badges-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .badge { text-align: center; padding: 10px 5px; border-radius: 12px; background: var(--light); font-size: 0.7em; }
+        .badge.locked { opacity: 0.4; filter: grayscale(1); }
+        .badge.unlocked { background: linear-gradient(135deg, #fa709a, #fee140); color: white; }
+        .badge-icon { font-size: 1.8em; display: block; margin-bottom: 4px; }
+
+        /* 悬浮按钮 */
+        .fab-container {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+        }
+        .fab-menu { display: none; flex-direction: column; gap: 8px; animation: slideUp 0.3s ease; }
+        .fab-item { width: 40px; height: 40px; border-radius: 50%; border: none; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.2); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2em; }
+        .fab-item.danger { color: var(--danger); }
+        .fab-main { width: 50px; height: 50px; border-radius: 50%; border: none; background: linear-gradient(135deg, #667eea, #764ba2); color: white; font-size: 1.4em; cursor: pointer; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); display: flex; align-items: center; justify-content: center; }
+        .fab-main.active { transform: rotate(45deg); }
+
+        /* 提示 */
+        .toast {
+            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.85); color: white; padding: 12px 25px;
+            border-radius: 25px; font-size: 0.95em; display: none; z-index: 3000;
+            white-space: nowrap;
+        }
+
+        .celebration {
+            position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 5em; pointer-events: none; z-index: 2500;
+            animation: celebrate 1s ease-out forwards; display: none;
+        }
+        @keyframes celebrate {
+            0% { transform: translate(-50%, -50%) scale(0) rotate(0deg); opacity: 1; }
+            50% { transform: translate(-50%, -50%) scale(1.5) rotate(180deg); }
+            100% { transform: translate(-50%, -50%) scale(0) rotate(360deg); opacity: 0; }
+        }
+
+        .empty-state { text-align: center; padding: 30px; color: #999; }
+        .empty-icon { font-size: 2.5em; margin-bottom: 8px; }
+
+        #importFile { display: none; }
+        
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .main-grid { grid-template-columns: 1fr; }
+            .form-row-3 { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 全局积分 -->
+    <div class="points-float">
+        <span>💎</span>
+        <span id="globalPointsValue">0</span>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1 id="pageTitle">🌟 小小任务探险家</h1>
+        </div>
+
+        <!-- 任务页面 -->
+        <div id="page-tasks" class="page active">
+            <!-- 统计概览 -->
+            <div class="stats-summary" id="statsSummary">
+                <div class="stat-tag">⏱️ 平均用时：<span id="avgTime">--</span></div>
+                <div class="stat-tag">📊 准时率：<span id="onTimeRate">--%</span></div>
+                <div class="stat-tag">⭐ 优秀率：<span id="excellentRate">--%</span></div>
+            </div>
+
+            <!-- 积分面板 -->
+            <div class="score-board">
+                <div class="stat-card total">
+                    <div class="stat-label">⭐ 总获得</div>
+                    <div class="stat-value" id="totalEarned">0</div>
+                </div>
+                <div class="stat-card today">
+                    <div class="stat-label">📅 今日净赚</div>
+                    <div class="stat-value" id="todayNet">0</div>
+                </div>
+                <div class="stat-card streak">
+                    <div class="stat-label">🔥 连续天数</div>
+                    <div class="stat-value" id="streakDays">0</div>
+                </div>
+                <div class="stat-card quality">
+                    <div class="stat-label">📈 完成质量</div>
+                    <div class="stat-value" id="qualityScore">A</div>
+                </div>
+            </div>
+
+            <!-- 添加任务 -->
+            <div class="card">
+                <div class="card-title">📝 发布新任务</div>
+                <form class="add-task-form" id="taskForm" onsubmit="return false;">
+                    <div class="input-group">
+                        <label>任务名称</label>
+                        <input type="text" id="taskName" placeholder="例如：完成数学作业第3页" required>
+                    </div>
+                    <div class="form-row-3">
+                        <div class="input-group">
+                            <label>基础积分</label>
+                            <select id="taskPoints">
+                                <option value="10">10分</option>
+                                <option value="20" selected>20分</option>
+                                <option value="30">30分</option>
+                                <option value="50">50分</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>科目</label>
+                            <select id="taskCategory">
+                                <option value="math">🔢数学</option>
+                                <option value="chinese">📖语文</option>
+                                <option value="english">🔤英语</option>
+                                <option value="other">🎨其他</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>时限(分)</label>
+                            <select id="taskDuration">
+                                <option value="15">15分钟</option>
+                                <option value="30" selected>30分钟</option>
+                                <option value="60">1小时</option>
+                                <option value="120">2小时</option>
+                                <option value="0">无限制</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.8em; color: #666; margin-top: -5px;">
+                        💡 提示：按时完成×1.0，超时×0.5；质量优秀×1.0，良好×0.8，及格×0.5，不及格×0（或扣分）
+                    </div>
+                    <button type="submit" class="btn-primary" onclick="UI.addTask()">✨ 发布任务</button>
+                </form>
+            </div>
+
+            <!-- 任务列表 -->
+            <div class="card">
+                <div class="card-title">🎯 任务列表 <span id="taskCount" style="font-size:0.8em;color:#999;">(0)</span></div>
+                <div class="task-list" id="taskList">
+                    <div class="empty-state">
+                        <div class="empty-icon">🌈</div>
+                        <div>还没有任务，快添加一个吧！</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 图表 -->
+            <div class="card">
+                <div class="card-title">📊 本周积分趋势（含扣减）</div>
+                <div class="chart-container"><canvas id="trendChart"></canvas></div>
+            </div>
+
+            <!-- 成就 -->
+            <div class="card">
+                <div class="card-title">🏆 成就徽章</div>
+                <div class="badges-grid" id="badgesGrid"></div>
+            </div>
+        </div>
+
+        <!-- 兑换页面 -->
+        <div id="page-rewards" class="page">
+            <div class="card" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; text-align: center; padding: 30px;">
+                <div style="font-size: 0.9em; opacity: 0.9; margin-bottom: 5px;">当前可用积分</div>
+                <div style="font-size: 3em; font-weight: bold;" id="availablePoints">0</div>
+                <div style="font-size: 0.8em; opacity: 0.8; margin-top: 5px;">完成任务获得积分，兑换奖励</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">🎁 兑换商城</div>
+                <div class="rewards-grid" id="rewardsGrid"></div>
+                
+                <div class="custom-reward">
+                    <h3>💰 自定义现金兑换</h3>
+                    <div class="input-coins">
+                        <span>兑换</span>
+                        <input type="number" id="customMoney" placeholder="10" min="1">
+                        <span>元</span>
+                    </div>
+                    <div style="color: #666; font-size: 0.9em; margin-bottom: 10px;">
+                        需要 <span id="customCost" style="color: var(--primary); font-weight: bold;">100</span> 积分
+                        <small style="display: block; color: #999; margin-top: 3px;">（10积分 = 1元）</small>
+                    </div>
+                    <button class="btn-primary" onclick="RewardManager.redeemCustom()" style="background: linear-gradient(135deg, #f093fb, #f5576c);">
+                        💸 立即兑换
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">🛒 兑换记录</div>
+                <div class="history-list" id="redeemHistory">
+                    <div class="empty-state"><div class="empty-icon">🛍️</div><div>还没有兑换记录</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 评价弹窗 -->
+    <div class="modal-overlay" id="reviewModal">
+        <div class="modal-content">
+            <div class="modal-title">🎯 完成任务评价</div>
+            
+            <div class="review-section">
+                <div class="review-label">⏱️ 用时情况</div>
+                <div class="time-info">
+                    <span>时限：<span id="modalLimit">30</span>分钟</span>
+                    <span>实际：<span id="modalActual">25</span>分钟</span>
+                </div>
+                <div style="text-align: center;">
+                    <span class="time-status" id="modalTimeStatus">按时完成</span>
+                </div>
+                <div style="text-align: center; margin-top: 8px; font-size: 0.85em; color: #666;" id="timeMultiplier">
+                    时间系数：×1.0
+                </div>
+            </div>
+
+            <div class="review-section">
+                <div class="review-label">📊 完成质量</div>
+                <div class="quality-options" id="qualityOptions">
+                    <div class="quality-btn" data-quality="excellent" onclick="ReviewManager.selectQuality('excellent')">
+                        <span class="emoji">🤩</span>
+                        <span class="label">优秀</span>
+                        <span class="multiplier">×1.0</span>
+                    </div>
+                    <div class="quality-btn" data-quality="good" onclick="ReviewManager.selectQuality('good')">
+                        <span class="emoji">😊</span>
+                        <span class="label">良好</span>
+                        <span class="multiplier">×0.8</span>
+                    </div>
+                    <div class="quality-btn" data-quality="pass" onclick="ReviewManager.selectQuality('pass')">
+                        <span class="emoji">😐</span>
+                        <span class="label">及格</span>
+                        <span class="multiplier">×0.5</span>
+                    </div>
+                    <div class="quality-btn" data-quality="fail" onclick="ReviewManager.selectQuality('fail')">
+                        <span class="emoji">😣</span>
+                        <span class="label">不及格</span>
+                        <span class="multiplier">×0（扣分）</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="points-preview">
+                <div class="label">最终获得积分</div>
+                <div class="value" id="finalPoints">0</div>
+                <div class="calculation" id="calculation">20 × 1.0 × 1.0 = 20</div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="ReviewManager.close()">取消</button>
+                <button class="btn-confirm" onclick="ReviewManager.confirm()">确认完成</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部导航 -->
+    <div class="bottom-nav">
+        <button class="nav-item active" onclick="UI.switchPage('tasks')">
+            <span class="nav-icon">📝</span>
+            <span>任务中心</span>
+        </button>
+        <button class="nav-item" onclick="UI.switchPage('rewards')">
+            <span class="nav-icon">🎁</span>
+            <span>兑换商城</span>
+        </button>
+    </div>
+
+    <!-- 悬浮菜单 -->
+    <div class="fab-container" id="fabContainer">
+        <div class="fab-menu" id="fabMenu">
+            <button onclick="exportData()" class="fab-item" title="备份数据">💾</button>
+            <button onclick="document.getElementById('importFile').click()" class="fab-item" title="恢复数据">📲</button>
+            <button onclick="clearAllData()" class="fab-item danger" title="清空所有">🗑️</button>
+        </div>
+        <button class="fab-main" id="fabMain" onclick="toggleFab()">⚙️</button>
+    </div>
+
+    <input type="file" id="importFile" accept=".json,.txt" onchange="importData(this)">
+    <div class="toast" id="toast"></div>
+    <div class="celebration" id="celebration">🎉</div>
+
+    <script>
+        // 评价管理器 - 新增
+        const ReviewManager = {
+            currentTaskId: null,
+            selectedQuality: null,
+            timeMultiplier: 1,
+            
+            // 打开评价弹窗
+            open(taskId) {
+                const task = DataManager.tasks.find(t => t.id === taskId);
+                if (!task || task.status !== 'pending') return;
+                
+                this.currentTaskId = taskId;
+                this.selectedQuality = null;
+                
+                // 计算用时
+                const now = new Date();
+                const created = new Date(task.createdAt);
+                const durationMinutes = Math.floor((now - created) / (1000 * 60));
+                const limitMinutes = parseInt(task.estimatedMinutes) || 0;
+                
+                // 判断是否超时（无限制则不算超时）
+                let isOvertime = false;
+                if (limitMinutes > 0 && durationMinutes > limitMinutes) {
+                    isOvertime = true;
+                    this.timeMultiplier = 0.5;
+                } else {
+                    this.timeMultiplier = 1.0;
+                }
+                
+                // 填充弹窗数据
+                document.getElementById('modalLimit').textContent = limitMinutes > 0 ? limitMinutes : '无';
+                document.getElementById('modalActual').textContent = durationMinutes;
+                
+                const statusEl = document.getElementById('modalTimeStatus');
+                if (limitMinutes === 0) {
+                    statusEl.textContent = '无时限';
+                    statusEl.className = 'time-status ontime';
+                } else if (isOvertime) {
+                    statusEl.textContent = `超时${durationMinutes - limitMinutes}分钟`;
+                    statusEl.className = 'time-status late';
+                } else {
+                    statusEl.textContent = '按时完成';
+                    statusEl.className = 'time-status ontime';
+                }
+                
+                document.getElementById('timeMultiplier').textContent = 
+                    `时间系数：×${this.timeMultiplier}${isOvertime ? '（减半）' : ''}`;
+                
+                // 重置质量选择
+                document.querySelectorAll('.quality-btn').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+                
+                // 默认选中良好
+                this.selectQuality('good');
+                
+                // 显示弹窗
+                document.getElementById('reviewModal').classList.add('active');
+                document.body.style.overflow = 'hidden';
+            },
+            
+            selectQuality(quality) {
+                this.selectedQuality = quality;
+                document.querySelectorAll('.quality-btn').forEach(btn => {
+                    btn.classList.remove('selected');
+                    if (btn.dataset.quality === quality) {
+                        btn.classList.add('selected');
+                    }
+                });
+                this.updatePreview();
+            },
+            
+            updatePreview() {
+                const task = DataManager.tasks.find(t => t.id === this.currentTaskId);
+                if (!task) return;
+                
+                const basePoints = parseInt(task.points);
+                const qualityMultipliers = {
+                    'excellent': 1.0,
+                    'good': 0.8,
+                    'pass': 0.5,
+                    'fail': 0  // 0分，相当于全部扣减
+                };
+                const qMultiplier = qualityMultipliers[this.selectedQuality] || 0.8;
+                
+                const finalPoints = Math.round(basePoints * this.timeMultiplier * qMultiplier);
+                
+                // 显示计算过程
+                let calcText = `${basePoints} × ${this.timeMultiplier} × ${qMultiplier} = ${finalPoints}`;
+                if (finalPoints === 0 && this.selectedQuality === 'fail') {
+                    calcText = `${basePoints} × 0 = 0（需重做或惩罚）`;
+                }
+                
+                document.getElementById('finalPoints').textContent = finalPoints;
+                document.getElementById('calculation').textContent = calcText;
+                
+                // 根据分数变色
+                const pointsEl = document.getElementById('finalPoints');
+                if (finalPoints > basePoints * 0.8) {
+                    pointsEl.style.color = '#fff';
+                } else if (finalPoints > 0) {
+                    pointsEl.style.color = '#ffeaa7';
+                } else {
+                    pointsEl.style.color = '#fab1a0';
+                }
+            },
+            
+            confirm() {
+                if (!this.currentTaskId || !this.selectedQuality) {
+                    showToast('请选择完成质量');
+                    return;
+                }
+                
+                const task = DataManager.tasks.find(t => t.id === this.currentTaskId);
+                if (!task) return;
+                
+                // 计算最终积分
+                const basePoints = parseInt(task.points);
+                const qualityMultipliers = {
+                    'excellent': 1.0,
+                    'good': 0.8,
+                    'pass': 0.5,
+                    'fail': 0
+                };
+                const qMultiplier = qualityMultipliers[this.selectedQuality];
+                const finalPoints = Math.round(basePoints * this.timeMultiplier * qMultiplier);
+                
+                // 完成任务
+                const completedTask = DataManager.completeTask(
+                    this.currentTaskId, 
+                    finalPoints, 
+                    this.selectedQuality,
+                    this.timeMultiplier < 1
+                );
+                
+                if (completedTask) {
+                    this.close();
+                    
+                    // 显示不同提示
+                    if (finalPoints === 0) {
+                        showToast('⚠️ 任务质量不及格，未获得积分！请重做！');
+                        celebrate('❌');
+                    } else if (this.timeMultiplier < 1) {
+                        showToast(`⏰ 超时完成！获得 ${finalPoints} 积分（已减半）`);
+                        celebrate('⏱️');
+                    } else if (this.selectedQuality === 'excellent') {
+                        showToast(`🌟 完美完成！获得 ${finalPoints} 积分！`);
+                        celebrate('🌟');
+                    } else {
+                        showToast(`✅ 完成！获得 ${finalPoints} 积分`);
+                        celebrate();
+                    }
+                    
+                    UI.render();
+                    
+                    // 检查成就
+                    setTimeout(() => {
+                        const newBadges = BadgeSystem.check();
+                        if (newBadges.length > 0) {
+                            showToast(`🎉 解锁成就：${newBadges[0].name}！`);
+                            BadgeSystem.render();
+                        }
+                    }, 1000);
+                }
+            },
+            
+            close() {
+                document.getElementById('reviewModal').classList.remove('active');
+                document.body.style.overflow = '';
+                this.currentTaskId = null;
+            }
+        };
+
+        // 页面控制
+        const UI = {
+            currentPage: 'tasks',
+            
+            switchPage(page) {
+                this.currentPage = page;
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                document.getElementById(`page-${page}`).classList.add('active');
+                document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+                event.currentTarget.classList.add('active');
+                document.getElementById('fabContainer').style.display = page === 'tasks' ? 'flex' : 'none';
+                document.getElementById('pageTitle').textContent = page === 'tasks' ? '🌟 小小任务探险家' : '🎁 积分兑换商城';
+                if (page === 'rewards') RewardManager.render();
+                else this.render();
+            },
+
+            init() {
+                DataManager.init();
+                setTimeout(() => {
+                    ChartDrawer.init();
+                    this.render();
+                    RewardManager.render();
+                }, 100);
+                window.addEventListener('resize', () => {
+                    ChartDrawer.init();
+                    ChartDrawer.draw();
+                });
+                
+                // 监听自定义金额
+                document.getElementById('customMoney').addEventListener('input', (e) => {
+                    const val = parseInt(e.target.value) || 0;
+                    document.getElementById('customCost').textContent = val * 10;
+                });
+                
+                // 点击遮罩关闭弹窗
+                document.getElementById('reviewModal').addEventListener('click', (e) => {
+                    if (e.target === e.currentTarget) ReviewManager.close();
+                });
+            },
+
+            render() {
+                this.renderTasks();
+                this.renderStats();
+                this.renderHistory();
+                this.renderStatsSummary();
+                BadgeSystem.render();
+                setTimeout(() => ChartDrawer.draw(), 50);
+                this.updateGlobalPoints();
+            },
+
+            updateGlobalPoints() {
+                const points = DataManager.getAvailablePoints();
+                document.getElementById('globalPointsValue').textContent = points;
+                document.getElementById('availablePoints').textContent = points;
+            },
+
+            renderStatsSummary() {
+                const stats = DataManager.getStats();
+                document.getElementById('avgTime').textContent = stats.avgTime > 0 ? stats.avgTime + '分' : '--';
+                document.getElementById('onTimeRate').textContent = stats.onTimeRate + '%';
+                document.getElementById('excellentRate').textContent = stats.excellentRate + '%';
+            },
+
+            renderTasks() {
+                const list = document.getElementById('taskList');
+                const pending = DataManager.tasks.filter(t => t.status === 'pending');
+                const completed = DataManager.tasks.filter(t => t.status === 'completed').slice(0, 20); // 只显示最近20个
+                
+                document.getElementById('taskCount').textContent = `(${pending.length})`;
+
+                if (DataManager.tasks.length === 0) {
+                    list.innerHTML = `<div class="empty-state"><div class="empty-icon">🌈</div><div>还没有任务，快添加一个吧！</div></div>`;
+                    return;
+                }
+
+                const icons = { math: '🔢', chinese: '📖', english: '🔤', science: '🔬', other: '🎨' };
+                
+                const renderItem = (task) => {
+                    const isCompleted = task.status === 'completed';
+                    let tagsHtml = '';
+                    
+                    if (isCompleted) {
+                        // 显示评价标签
+                        const qualityLabels = {
+                            'excellent': { text: '优秀', class: 'quality-excellent' },
+                            'good': { text: '良好', class: 'quality-good' },
+                            'pass': { text: '及格', class: 'quality-pass' },
+                            'fail': { text: '不及格', class: 'quality-fail' }
+                        };
+                        const qLabel = qualityLabels[task.quality] || { text: '', class: '' };
+                        
+                        if (task.isOvertime) {
+                            tagsHtml += `<span class="tag overtime">⏰ 超时</span>`;
+                        }
+                        if (qLabel.text) {
+                            tagsHtml += `<span class="tag ${qLabel.class}">${qLabel.text}</span>`;
+                        }
+                    } else {
+                        // 显示时限标签
+                        if (task.estimatedMinutes > 0) {
+                            tagsHtml += `<span class="tag time-limit">⏱️ ${task.estimatedMinutes}分钟</span>`;
+                        } else {
+                            tagsHtml += `<span class="tag">⏱️ 不限时</span>`;
+                        }
+                    }
+
+                    const pointsHtml = isCompleted ? 
+                        `<div class="points-base">${task.points}</div>
+                         <div class="points-actual ${task.actualPoints < task.points * 0.8 ? 'penalty' : (task.actualPoints > task.points ? 'bonus' : '')}">
+                             ${task.actualPoints > 0 ? '+' : ''}${task.actualPoints}
+                         </div>` :
+                        `<div class="task-points" style="background: var(--accent); padding: 4px 10px; border-radius: 15px; font-weight: bold;">+${task.points}</div>`;
+
+                    return `
+                        <div class="task-item ${task.status} ${task.isOvertime ? 'overtime' : ''}">
+                            <div class="task-header">
+                                <div class="task-info">
+                                    <div class="task-name">${icons[task.category] || '📝'} ${task.name}</div>
+                                    <div class="task-tags">${tagsHtml}</div>
+                                </div>
+                                <div class="task-points-section">
+                                    ${pointsHtml}
+                                </div>
+                            </div>
+                            <div class="task-actions">
+                                ${!isCompleted ? 
+                                    `<button class="btn-review" onclick="event.stopPropagation(); ReviewManager.open(${task.id})">完成评价</button>` :
+                                    `<button class="btn-icon btn-delete" onclick="UI.deleteTask(${task.id})">×</button>`
+                                }
+                            </div>
+                        </div>
+                    `;
+                };
+
+                list.innerHTML = [...pending, ...completed].map(renderItem).join('');
+            },
+
+            renderStats() {
+                const earned = DataManager.history.filter(h => h.points > 0).reduce((s, h) => s + h.points, 0);
+                const deducted = DataManager.history.filter(h => h.points < 0).reduce((s, h) => s + Math.abs(h.points), 0);
+                const todayNet = DataManager.getTodayNetPoints();
+                
+                document.getElementById('totalEarned').textContent = earned;
+                document.getElementById('todayNet').textContent = (todayNet > 0 ? '+' : '') + todayNet;
+                document.getElementById('streakDays').textContent = DataManager.getStreak();
+                
+                // 计算综合质量分
+                const completed = DataManager.tasks.filter(t => t.status === 'completed');
+                let score = 'A';
+                if (completed.length > 0) {
+                    const avgQuality = completed.reduce((s, t) => {
+                        const map = { 'excellent': 4, 'good': 3, 'pass': 2, 'fail': 1 };
+                        return s + (map[t.quality] || 3);
+                    }, 0) / completed.length;
+                    score = avgQuality >= 3.5 ? 'A' : (avgQuality >= 2.5 ? 'B' : (avgQuality >= 1.5 ? 'C' : 'D'));
+                }
+                document.getElementById('qualityScore').textContent = score;
+            },
+
+            renderHistory() {
+                const list = document.getElementById('historyList');
+                if (DataManager.history.length === 0) {
+                    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><div>暂无记录</div></div>`;
+                    return;
+                }
+                list.innerHTML = DataManager.history.slice(0, 10).map(h => `
+                    <div class="history-item">
+                        <div>
+                            <div>${h.taskName} ${h.quality ? (h.quality === 'excellent' ? '🌟' : (h.quality === 'fail' ? '❌' : '')) : ''}</div>
+                            <div style="font-size:0.75em;color:#999">${new Date(h.date).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} ${h.isOvertime ? '(超时)' : ''}</div>
+                        </div>
+                        <div class="history-points ${h.points >= 0 ? 'positive' : 'negative'}">
+                            ${h.points > 0 ? '+' : ''}${h.points}
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            addTask() {
+                const name = document.getElementById('taskName').value.trim();
+                const points = document.getElementById('taskPoints').value;
+                const category = document.getElementById('taskCategory').value;
+                const duration = document.getElementById('taskDuration').value;
+                
+                if (!name) { showToast('请输入任务名称'); return; }
+                
+                DataManager.addTask({ 
+                    name, 
+                    points, 
+                    category,
+                    estimatedMinutes: parseInt(duration)
+                });
+                
+                document.getElementById('taskForm').reset();
+                this.render();
+                showToast(`任务发布！限时${duration > 0 ? duration + '分钟' : '无限制'}`);
+            },
+
+            deleteTask(id) {
+                if (confirm('确定删除这条记录？')) {
+                    DataManager.deleteTask(id);
+                    this.render();
+                    showToast('已删除');
+                }
+            }
+        };
+
+        // 兑换管理器
+        const RewardManager = {
+            presets: [
+                { id: 'game30', name: '游戏时间', desc: '30分钟', icon: '🎮', cost: 30 },
+                { id: 'tv1h', name: '动画片', desc: '1小时', icon: '📺', cost: 40 },
+                { id: 'money5', name: '零花钱', desc: '5元现金', icon: '💵', cost: 50 },
+                { id: 'park', name: '周末出游', desc: '公园/游乐园', icon: '🎡', cost: 100 },
+                { id: 'toy', name: '小玩具', desc: '盲盒/卡片', icon: '🧸', cost: 80 },
+                { id: 'snack', name: '零食特权', desc: '任选零食一次', icon: '🍟', cost: 20 }
+            ],
+
+            render() {
+                const grid = document.getElementById('rewardsGrid');
+                const available = DataManager.getAvailablePoints();
+                
+                grid.innerHTML = this.presets.map(item => {
+                    const canAfford = available >= item.cost;
+                    return `
+                        <div class="reward-card ${!canAfford ? 'disabled' : ''}" onclick="${canAfford ? `RewardManager.confirmRedeem('${item.id}')` : ''}">
+                            <div class="reward-icon">${item.icon}</div>
+                            <div class="reward-name">${item.name}</div>
+                            <div class="reward-desc">${item.desc}</div>
+                            <div class="reward-cost">${item.cost} 积分</div>
+                        </div>
+                    `;
+                }).join('');
+                
+                UI.updateGlobalPoints();
+                this.renderHistory();
+            },
+
+            confirmRedeem(itemId) {
+                const item = this.presets.find(p => p.id === itemId);
+                if (!item) return;
+                
+                if (confirm(`确定兑换？\n${item.icon} ${item.name} (${item.desc})\n消耗：${item.cost} 积分`)) {
+                    this.doRedeem(item);
+                }
+            },
+
+            redeemCustom() {
+                const money = parseInt(document.getElementById('customMoney').value);
+                if (!money || money <= 0) { showToast('请输入金额'); return; }
+                
+                const cost = money * 10;
+                if (DataManager.getAvailablePoints() < cost) {
+                    showToast(`积分不足！需要${cost}积分`); return;
+                }
+                
+                if (confirm(`确定兑换 ${money} 元？\n消耗 ${cost} 积分`)) {
+                    this.doRedeem({ name: '现金红包', desc: `${money}元`, icon: '💰', cost: cost });
+                    document.getElementById('customMoney').value = '';
+                    document.getElementById('customCost').textContent = '0';
+                }
+            },
+
+            doRedeem(item) {
+                if (DataManager.redeem(item)) {
+                    celebrate();
+                    showToast(`🎉 兑换成功！${item.icon}`);
+                    this.render();
+                    UI.updateGlobalPoints();
+                }
+            },
+
+            renderHistory() {
+                const list = document.getElementById('redeemHistory');
+                const redeems = DataManager.redeems;
+                
+                if (redeems.length === 0) {
+                    list.innerHTML = `<div class="empty-state"><div class="empty-icon">🛍️</div><div>还没有兑换记录</div></div>`;
+                    return;
+                }
+                
+                list.innerHTML = redeems.slice(0, 10).map(r => `
+                    <div class="history-item" style="background:#fafafa;padding:10px;border-radius:10px;margin-bottom:8px;">
+                        <div style="flex:1;">
+                            <div style="font-weight:600;">${r.icon} ${r.name} ${r.desc}</div>
+                            <div style="font-size:0.75em;color:#999;">${new Date(r.date).toLocaleString()}</div>
+                        </div>
+                        <div style="color:var(--danger);font-weight:bold;">-${r.cost}</div>
+                    </div>
+                `).join('');
+            }
+        };
+
+        // 数据管理
+        const DataManager = {
+            tasks: [], history: [], badges: [], redeems: [],
+            
+            init() {
+                this.load();
+                if (!this.redeems) this.redeems = [];
+            },
+
+            load() {
+                try {
+                    this.tasks = JSON.parse(localStorage.getItem('kidTasks') || '[]');
+                    this.history = JSON.parse(localStorage.getItem('kidHistory') || '[]');
+                    this.badges = JSON.parse(localStorage.getItem('kidBadges') || '[]');
+                    this.redeems = JSON.parse(localStorage.getItem('kidRedeems') || '[]');
+                } catch(e) {
+                    this.tasks = []; this.history = []; this.badges = []; this.redeems = [];
+                }
+            },
+            
+            save() {
+                try {
+                    localStorage.setItem('kidTasks', JSON.stringify(this.tasks));
+                    localStorage.setItem('kidHistory', JSON.stringify(this.history));
+                    localStorage.setItem('kidBadges', JSON.stringify(this.badges));
+                    localStorage.setItem('kidRedeems', JSON.stringify(this.redeems));
+                    return true;
+                } catch(e) { return false; }
+            },
+
+            addTask(task) {
+                task.id = Date.now();
+                task.createdAt = new Date().toISOString();
+                task.status = 'pending';
+                task.estimatedMinutes = task.estimatedMinutes || 0;
+                this.tasks.push(task);
+                this.save();
+                return task;
+            },
+
+            completeTask(id, actualPoints, quality, isOvertime) {
+                const task = this.tasks.find(t => t.id === id);
+                if (task && task.status === 'pending') {
+                    task.status = 'completed';
+                    task.completedAt = new Date().toISOString();
+                    task.actualPoints = actualPoints;
+                    task.quality = quality;
+                    task.isOvertime = isOvertime;
+                    
+                    this.history.unshift({
+                        taskName: task.name,
+                        points: actualPoints,
+                        date: new Date().toISOString(),
+                        category: task.category,
+                        quality: quality,
+                        isOvertime: isOvertime,
+                        basePoints: task.points
+                    });
+
+                    this.save();
+                    return task;
+                }
+                return null;
+            },
+
+            deleteTask(id) {
+                this.tasks = this.tasks.filter(t => t.id !== id);
+                this.save();
+            },
+
+            clearAll() {
+                if(confirm('确定清空所有数据？')) {
+                    this.tasks = []; this.history = []; this.badges = []; this.redeems = [];
+                    localStorage.clear();
+                    return true;
+                }
+                return false;
+            },
+
+            getAvailablePoints() {
+                const earned = this.history.reduce((sum, h) => sum + (h.points > 0 ? h.points : 0), 0);
+                const deducted = this.history.reduce((sum, h) => sum + (h.points < 0 ? Math.abs(h.points) : 0), 0);
+                const spent = this.redeems.reduce((sum, r) => sum + r.cost, 0);
+                return earned - deducted - spent;
+            },
+
+            getTodayNetPoints() {
+                const today = new Date().toDateString();
+                return this.history
+                    .filter(h => new Date(h.date).toDateString() === today)
+                    .reduce((sum, h) => sum + h.points, 0);
+            },
+
+            getStreak() {
+                if (this.history.length === 0) return 0;
+                const dates = [...new Set(this.history.map(h => new Date(h.date).toDateString()))].map(d => new Date(d)).sort((a, b) => b - a);
+                let streak = 1;
+                const today = new Date(); today.setHours(0,0,0,0);
+                const lastDate = dates[0]; lastDate.setHours(0,0,0,0);
+                if (Math.floor((today - lastDate) / (1000 * 60 * 60 * 24)) > 1) return 0;
+                for (let i = 0; i < dates.length - 1; i++) {
+                    if (Math.floor((dates[i] - dates[i+1]) / (1000 * 60 * 60 * 24)) === 1) streak++;
+                    else break;
+                }
+                return streak;
+            },
+
+            getStats() {
+                const completed = this.tasks.filter(t => t.status === 'completed');
+                if (completed.length === 0) return { avgTime: 0, onTimeRate: 0, excellentRate: 0 };
+                
+                // 平均用时
+                let totalMinutes = 0, count = 0;
+                completed.forEach(t => {
+                    if (t.estimatedMinutes > 0) {
+                        const start = new Date(t.createdAt);
+                        const end = new Date(t.completedAt);
+                        totalMinutes += Math.floor((end - start) / (1000 * 60));
+                        count++;
+                    }
+                });
+                
+                // 准时率
+                const onTimeCount = completed.filter(t => !t.isOvertime).length;
+                
+                // 优秀率
+                const excellentCount = completed.filter(t => t.quality === 'excellent').length;
+                
+                return {
+                    avgTime: count > 0 ? Math.round(totalMinutes / count) : 0,
+                    onTimeRate: Math.round((onTimeCount / completed.length) * 100),
+                    excellentRate: Math.round((excellentCount / completed.length) * 100)
+                };
+            },
+
+            getWeeklyData() {
+                const days = ['日','一','二','三','四','五','六'];
+                const result = [];
+                for (let i = 6; i >= 0; i--) {
+                    const d = new Date(); d.setDate(d.getDate() - i);
+                    const points = this.history
+                        .filter(h => new Date(h.date).toDateString() === d.toDateString())
+                        .reduce((sum, h) => sum + h.points, 0);
+                    result.push({ day: days[d.getDay()], points });
+                }
+                return result;
+            },
+
+            redeem(item) {
+                if (this.getAvailablePoints() < item.cost) return false;
+                this.redeems.unshift({
+                    id: Date.now(),
+                    name: item.name, desc: item.desc, icon: item.icon,
+                    cost: item.cost, date: new Date().toISOString()
+                });
+                return this.save();
+            },
+
+            export() {
+                return {
+                    tasks: this.tasks, history: this.history,
+                    badges: this.badges, redeems: this.redeems,
+                    exportTime: new Date().toLocaleString(), version: '3.0'
+                };
+            },
+
+            import(data) {
+                if (!data || !Array.isArray(data.tasks)) throw new Error('格式错误');
+                this.tasks = data.tasks;
+                this.history = data.history || [];
+                this.badges = data.badges || [];
+                this.redeems = data.redeems || [];
+                return this.save();
+            }
+        };
+
+        // 成就系统
+        const BadgeSystem = {
+            definitions: [
+                { id: 'first', name: '初次尝试', icon: '🌱', condition: (d) => d.history.length >= 1 },
+                { id: 'ontime', name: '守时达人', icon: '⏰', condition: (d) => d.tasks.filter(t => t.status === 'completed' && !t.isOvertime).length >= 5 },
+                { id: 'quality', name: '质量标兵', icon: '🌟', condition: (d) => d.tasks.filter(t => t.quality === 'excellent').length >= 3 },
+                { id: 'speed', name: '闪电侠', icon: '⚡', condition: (d) => d.tasks.some(t => t.status === 'completed' && t.estimatedMinutes > 0 && !t.isOvertime && (new Date(t.completedAt) - new Date(t.createdAt)) < 10 * 60 * 1000) },
+                { id: 'streak3', name: '坚持3天', icon: '🔥', condition: (d) => d.getStreak() >= 3 },
+                { id: 'shopper', name: '消费者', icon: '🛍️', condition: (d) => d.redeems.length >= 1 }
+            ],
+
+            check() {
+                const newBadges = [];
+                this.definitions.forEach(badge => {
+                    if (!DataManager.badges.includes(badge.id) && badge.condition(DataManager)) {
+                        DataManager.badges.push(badge.id);
+                        newBadges.push(badge);
+                    }
+                });
+                if (newBadges.length > 0) DataManager.save();
+                return newBadges;
+            },
+
+            render() {
+                document.getElementById('badgesGrid').innerHTML = this.definitions.map(badge => {
+                    const unlocked = DataManager.badges.includes(badge.id);
+                    return `<div class="badge ${unlocked ? 'unlocked' : 'locked'}"><span class="badge-icon">${badge.icon}</span>${badge.name}</div>`;
+                }).join('');
+            }
+        };
+
+        // 图表
+        const ChartDrawer = {
+            canvas: null, ctx: null,
+            init() {
+                this.canvas = document.getElementById('trendChart');
+                if (!this.canvas) return;
+                const rect = this.canvas.parentElement.getBoundingClientRect();
+                this.canvas.width = rect.width * 2; this.canvas.height = rect.height * 2;
+                this.canvas.style.width = rect.width + 'px'; this.canvas.style.height = rect.height + 'px';
+                this.ctx = this.canvas.getContext('2d'); this.ctx.scale(2, 2);
+            },
+            draw() {
+                if (!this.ctx) return;
+                const data = DataManager.getWeeklyData(), ctx = this.ctx;
+                const width = this.canvas.width / 2, height = this.canvas.height / 2;
+                ctx.clearRect(0, 0, width, height);
+                const max = Math.max(...data.map(d => Math.abs(d.points)), 10);
+                const barWidth = (width - 60) / data.length;
+                
+                data.forEach((d, i) => {
+                    const x = 30 + i * barWidth + barWidth * 0.15;
+                    const barHeight = (Math.abs(d.points) / max) * (height - 60) * 0.8;
+                    const y = d.points >= 0 ? (height - 40 - barHeight) : (height - 40);
+                    
+                    const grad = ctx.createLinearGradient(0, y, 0, y + barHeight);
+                    if (d.points >= 0) {
+                        grad.addColorStop(0, '#667eea'); grad.addColorStop(1, '#764ba2');
+                    } else {
+                        grad.addColorStop(0, '#ff7675'); grad.addColorStop(1, '#d63031');
+                    }
+                    
+                    ctx.fillStyle = grad;
+                    ctx.fillRect(x, y, barWidth * 0.7, barHeight);
+                    
+                    if (Math.abs(d.points) > 0) {
+                        ctx.fillStyle = '#333'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center';
+                        ctx.fillText(d.points, x + barWidth * 0.35, d.points >= 0 ? y - 5 : y + barHeight + 15);
+                    }
+                    
+                    ctx.fillStyle = '#666'; ctx.font = '11px sans-serif'; ctx.textAlign = 'center';
+                    ctx.fillText(d.day, x + barWidth * 0.35, height - 15);
+                });
+            }
+        };
+
+        // 工具函数
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg; toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', 3000);
+        }
+        
+        function celebrate(emoji) {
+            const cel = document.getElementById('celebration');
+            cel.textContent = emoji || ['🎉','🌟','✨','🎊','👏'][Math.floor(Math.random()*5)];
+            cel.style.display = 'block';
+            setTimeout(() => cel.style.display = 'none', 1000);
+        }
+        
+        function toggleFab() {
+            const menu = document.getElementById('fabMenu'), btn = document.getElementById('fabMain');
+            if (menu.style.display === 'flex') { menu.style.display = 'none'; btn.classList.remove('active'); btn.textContent = '⚙️'; }
+            else { menu.style.display = 'flex'; btn.classList.add('active'); btn.textContent = '✕'; }
+        }
+        
+        document.addEventListener('click', function(e) {
+            if (!document.querySelector('.fab-container').contains(e.target)) {
+                document.getElementById('fabMenu').style.display = 'none';
+                document.getElementById('fabMain').classList.remove('active');
+                document.getElementById('fabMain').textContent = '⚙️';
+            }
+        });
+
+        // 导入导出
+        function exportData() {
+            try {
+                const data = DataManager.export();
+                const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = `任务备份_${new Date().toLocaleDateString()}.json`;
+                document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+                showToast('✅ 备份成功！'); toggleFab();
+            } catch(e) { alert('备份失败'); }
+        }
+
+        function importData(input) {
+            const file = input.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (confirm(`恢复备份？\n时间：${data.exportTime || '未知'}\n任务：${data.tasks.length}个`)) {
+                        if (DataManager.import(data)) {
+                            UI.render(); RewardManager.render();
+                            showToast('✅ 恢复成功！'); toggleFab();
+                        }
+                    }
+                } catch(err) { alert('导入失败：' + err.message); }
+                input.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        function clearAllData() {
+            if (DataManager.clearAll()) { UI.render(); RewardManager.render(); showToast('已清空'); toggleFab(); }
+        }
+
+        // 启动
+        window.addEventListener('load', () => UI.init());
+    </script>
+</body>
+</html>
